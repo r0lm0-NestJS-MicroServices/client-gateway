@@ -1,1 +1,2 @@
-import * as envs from './envs';
+export * from './envs';
+export * from './services';

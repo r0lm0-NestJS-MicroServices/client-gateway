@@ -7,12 +7,12 @@ export class ProductsController {
 
   @Post()
   createProduct() {
-    return 'Product created';
+    return 'Esta función crea un producto';
   }
 
   @Get()
   findAllProducts() {
-    return 'Esta funtion retorna todos os produtos';
+    return 'Esta funtion retorna todos los produtos';
   }
 
   @Get(':id')
@@ -21,12 +21,12 @@ export class ProductsController {
   }
 
   @Patch(':id')
-  pacthProductById(@Param('id') id: string) {
-    return 'Esta funtion atualiza um produto # ' + id;
+  patchProductById(@Param('id') id: string) {
+    return 'Esta función actualiza un producto # ' + id;
   }
 
   @Delete(':id')
   deleteProductById(@Param('id') id: string) {
-    return 'Esta funtion deleta um produto # ' + id;
+    return 'Esta función elimina un producto # ' + id;
   }
 }
