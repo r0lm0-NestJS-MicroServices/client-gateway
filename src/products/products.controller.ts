@@ -1,18 +1,19 @@
-import { Controller, Delete, Get, Inject, Param, Patch, Post, Query } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
+import { BadRequestException, Controller, Delete, Get, Inject, InternalServerErrorException, Param, ParseIntPipe, Patch, Post, Query, Body } from '@nestjs/common';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
+import { catchError, firstValueFrom } from 'rxjs';
 import { PaginationDto } from 'src/common';
 import { PRODUCT_SERVICE } from 'src/config';
 
-
 @Controller('products')
 export class ProductsController {
+  logger: any;
   constructor(
     @Inject(PRODUCT_SERVICE) private readonly productClient: ClientProxy
   ) { }
 
   @Post()
-  createProduct() {
-    return 'Esta función crea un producto';
+  createProduct(@Body() createProductDto: any) {
+    return this.productClient.send({ cmd: 'create_product' }, createProductDto);
   }
 
   @Get()
@@ -21,17 +22,18 @@ export class ProductsController {
   }
 
   @Get(':id')
-  findProductById(@Param('id') id: string) {
-    return 'Esta funtion retorna um produto # ' + id;
+  async findProductById(@Param('id', ParseIntPipe) id: number) {
+    return this.productClient.send({ cmd: 'find_product_by_id' }, { id });
   }
 
   @Patch(':id')
-  patchProductById(@Param('id') id: string) {
-    return 'Esta función actualiza un producto # ' + id;
+  updateProduct(@Param('id', ParseIntPipe) id: number, @Body() updateProductDto: any) {
+    const dataToSend = { id, ...updateProductDto };
+    return this.productClient.send({ cmd: 'update_product' }, dataToSend);
   }
 
   @Delete(':id')
-  deleteProductById(@Param('id') id: string) {
-    return 'Esta función elimina un producto # ' + id;
+  deleteProductById(@Param('id', ParseIntPipe) id: number) {
+    return this.productClient.send({ cmd: 'delete_product' }, { id });
   }
 }
