@@ -3,8 +3,8 @@ import { throwError } from 'rxjs';
 import { RpcException } from '@nestjs/microservices';
 import { Response } from 'express';
 
-@Catch(RpcException)
-export class RpcCustomExceptionFilter implements ExceptionFilter {
+@Catch()
+export class AllExceptionsFilter implements ExceptionFilter {
     private getErrorType(status: number): string {
         switch (status) {
             case 400: return 'Bad Request';
@@ -18,36 +18,55 @@ export class RpcCustomExceptionFilter implements ExceptionFilter {
         }
     }
 
-    catch(exception: RpcException, host: ArgumentsHost) {
+    catch(exception: any, host: ArgumentsHost) {
         const ctx = host.switchToHttp();
         const response = ctx.getResponse<Response>();
-        const rpcError = exception.getError();
 
+        // Si es una RpcException
+        if (exception instanceof RpcException) {
+            const rpcError = exception.getError();
 
-        if (typeof rpcError === 'object' && rpcError !== null && 'status' in rpcError && 'message' in rpcError) {
-            const status = (rpcError as any).status;
-            return response.status(status).json({
-                statusCode: status,
-                message: (rpcError as any).message,
-                error: (rpcError as any).error || this.getErrorType(status)
+            if (typeof rpcError === 'object' && rpcError !== null && 'status' in rpcError && 'message' in rpcError) {
+                const status = (rpcError as any).status;
+                return response.status(status).json({
+                    statusCode: status,
+                    message: (rpcError as any).message,
+                    error: (rpcError as any).error || this.getErrorType(status)
+                });
+            }
+
+            if (typeof rpcError === 'string') {
+                return response.status(400).json({
+                    statusCode: 400,
+                    message: rpcError,
+                    error: 'Bad Request'
+                });
+            }
+
+            if (typeof rpcError === 'object' && rpcError !== null) {
+                return response.status(400).json({
+                    statusCode: 400,
+                    message: 'Error interno del microservicio',
+                    error: 'Bad Request'
+                });
+            }
+        }
+
+        // Si es un error de conectividad con microservicios
+        if (exception.message && exception.message.includes('InvalidMessageException')) {
+            return response.status(503).json({
+                statusCode: 503,
+                message: 'Servicio no disponible',
+                error: 'Service Unavailable'
             });
         }
 
-        // Si es un string o error simple
-        if (typeof rpcError === 'string') {
-            return response.status(400).json({
-                statusCode: 400,
-                message: rpcError,
-                error: 'Bad Request'
-            });
-        }
-
-        // Si es un objeto pero no tiene la estructura esperada
-        if (typeof rpcError === 'object' && rpcError !== null) {
-            return response.status(400).json({
-                statusCode: 400,
-                message: 'Error interno del microservicio',
-                error: 'Bad Request'
+        // Si es un error de conexión
+        if (exception.message && exception.message.includes('ECONNRESET')) {
+            return response.status(503).json({
+                statusCode: 503,
+                message: 'Error de conexión con el microservicio',
+                error: 'Service Unavailable'
             });
         }
 

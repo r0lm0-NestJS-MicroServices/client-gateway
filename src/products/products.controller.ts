@@ -27,7 +27,7 @@ export class ProductsController {
   }
 
   @Patch(':id')
-  updateProduct(@Param('id', ParseIntPipe) id: number, @Body() updateProductDto: any) {
+  updateProduct(@Param('id', ParseIntPipe) id: number, @Query() updateProductDto: any) {
     const dataToSend = { id, ...updateProductDto };
     return this.productClient.send({ cmd: 'update_product' }, dataToSend);
   }
