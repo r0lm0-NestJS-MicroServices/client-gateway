@@ -12,7 +12,7 @@ export class OrdersController {
   ) { }
 
   @Post()
-  create(@Query() createOrderDto: CreateOrderDto) {
+  create(@Body() createOrderDto: CreateOrderDto) {
     return this.orderClient.send({ cmd: 'create_order' }, createOrderDto).pipe(
       catchError((error) => {
         throw new RpcException(error);
