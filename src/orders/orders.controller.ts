@@ -27,7 +27,7 @@ export class OrdersController {
     return this.orderClient.send({ cmd: 'find_all_orders' }, orderPaginationDto);
   }
 
-  @Get(':id')
+  @Get('id/:id')
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     try {
       const order = await firstValueFrom(
@@ -47,7 +47,7 @@ export class OrdersController {
   ) {
     try {
 
-      return this.orderClient.send('findAllOrders', {
+      return this.orderClient.send({ cmd: 'find_all_orders' }, {
         ...paginationDto,
         status: statusDto.status,
       });
@@ -63,7 +63,10 @@ export class OrdersController {
     @Body() statusDto: StatusDto,
   ) {
     try {
-      return this.orderClient.send('changeOrderStatus', { id, status: statusDto.status })
+      return this.orderClient.send({ cmd: 'changeOrderStatus' }, {
+        id,
+        status: statusDto.status,
+      });
     } catch (error) {
       throw new RpcException(error);
     }
