@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, ParseIntPipe, Query, ParseUUIDPipe } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { ORDER_SERVICE } from 'src/config';
-import { catchError } from 'rxjs';
+import { catchError, firstValueFrom } from 'rxjs';
+import { OrderPaginationDto } from './dto';
 
 @Controller('orders')
 export class OrdersController {
@@ -21,21 +22,21 @@ export class OrdersController {
   }
 
   @Get()
-  findAll() {
-    return this.orderClient.send({ cmd: 'find_all_orders' }, {}).pipe(
-      catchError((error) => {
-        throw new RpcException(error);
-      })
-    );
+  findAll(@Query() orderPaginationDto: OrderPaginationDto) {
+    return this.orderClient.send({ cmd: 'find_all_orders' }, orderPaginationDto);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: string) {
-    return this.orderClient.send({ cmd: 'find_order_by_id' }, { id }).pipe(
-      catchError((error) => {
-        throw new RpcException(error);
-      })
-    );
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+    try {
+      const order = await firstValueFrom(
+        this.orderClient.send({ cmd: 'find_order_by_id' }, { id })
+      )
+      return order
+    } catch (error) {
+      throw new RpcException(error);
+    }
+
   }
 
 
