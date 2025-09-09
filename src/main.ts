@@ -9,6 +9,7 @@ async function bootstrap() {
 
   const looger = new Logger('Main-Gateway');
   const app = await NestFactory.create(AppModule);
+
   app.setGlobalPrefix('api');
   app.useGlobalPipes(
     new ValidationPipe({
@@ -20,6 +21,8 @@ async function bootstrap() {
   app.useGlobalFilters(new RpcCustomExceptionFilter());
 
   await app.listen(envs.port);
+
+  console.log("Hola mundo primer cambio")
 
   looger.log(`Gateway is running on port: ${envs.port}`);
 }
