@@ -10,6 +10,13 @@ export class RpcCustomExceptionFilter implements ExceptionFilter {
 
         const rpcError = exception.getError();
 
+        if (rpcError.toString().includes('Empy respose')) {
+            return response.status(500).json({
+                status: 500,
+                message: 'Empty response from server',
+            });
+        }
+
         if (
             typeof rpcError === 'object' &&
             'status' in rpcError &&

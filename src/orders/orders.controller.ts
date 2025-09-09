@@ -15,16 +15,19 @@ export class OrdersController {
 
   @Post()
   create(@Body() createOrderDto: CreateOrderDto) {
-    return this.client.send({ cmd: 'create_order' }, createOrderDto).pipe(
-      catchError((error) => {
-        throw new RpcException(error);
-      })
-    );
+    return this.client.send({ cmd: 'create_order' }, createOrderDto)
   }
 
   @Get()
-  findAll(@Query() orderPaginationDto: OrderPaginationDto) {
-    return this.client.send({ cmd: 'find_all_orders' }, orderPaginationDto);
+  async findAll(@Query() orderPaginationDto: OrderPaginationDto) {
+    try {
+      const orders = await firstValueFrom(
+        this.client.send({ cmd: 'find_all_orders' }, orderPaginationDto)
+      )
+      return orders
+    } catch (error) {
+      throw new RpcException(error);
+    }
   }
 
   @Get('id/:id')
